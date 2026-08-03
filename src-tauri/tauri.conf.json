@@ -1,0 +1,28 @@
+{
+  "productName": "Assistant",
+  "version": "0.1.0",
+  "identifier": "com.assistant.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Assistant",
+        "width": 900,
+        "height": 680,
+        "minWidth": 600,
+        "minHeight": 450,
+        "center": true,
+        "resizable": true,
+        "decorations": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  }
+}
