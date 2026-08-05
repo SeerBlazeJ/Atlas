@@ -77,33 +77,81 @@ function App() {
   };
 
   return (
-    <div className="chat-container">
-      <div className="messages">
+    <div className="app">
+      <header className="header">
+        <div className="header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        <span className="header-title">Assistant</span>
+        <div className="header-status">
+          <span className="status-dot"></span>
+          <span className="status-text">Online</span>
+        </div>
+      </header>
+
+      <main className="messages-container">
         {messages.length === 0 && (
           <div className="empty-state">
-            <p>Start a conversation</p>
+            <div className="empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            </div>
+            <h2>Start a conversation</h2>
             <p>Type a message below to begin</p>
           </div>
         )}
-        {messages.map((msg) => (
-          <div key={msg.id} className={`message ${msg.sender}`}>
-            <p>{msg.text}</p>
-            <span className="time">{msg.time}</span>
-          </div>
-        ))}
-        {isTyping && <div className="typing-indicator">...</div>}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="input-area">
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
-        />
-        <button onClick={handleSend}>Send</button>
-      </div>
+
+        <div className="messages-list">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`message-row ${msg.sender}`}>
+              <div className={`message-bubble ${msg.sender}`}>
+                <p>{msg.text}</p>
+                <span className="message-time">{msg.time}</span>
+              </div>
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="message-row bot">
+              <div className="message-bubble bot typing">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </main>
+
+      <footer className="input-area">
+        <div className="input-wrapper">
+          <textarea
+            ref={inputRef}
+            className="message-input"
+            placeholder="Type a message..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={1}
+          />
+          <button
+            className="send-button"
+            onClick={handleSend}
+            disabled={!input.trim() || isTyping}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }
