@@ -1,8 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
-mod ollama_client;
-use ollama_client::{prompt_stream, ChatMessage, Role};
+mod llm_provider;
+use llm_provider::ollama::{prompt_stream, ChatMessage, Role};
 use tauri::ipc::Channel;
+
+use crate::llm_provider::ollama::list_ollama_models;
 
 // Can be called from the frontend, Interface used to chat with the LLMs
 //  TODO: history of chat functionality is not properly implemented yet - awaiting DB connections
@@ -20,6 +21,12 @@ async fn run_llm(message: String, on_event: Channel<String>) -> Result<String, S
     ];
 
     prompt_stream("qwen3.5:0.8b", history, false, on_event).await
+}
+
+/// List all the available models
+#[tauri::command]
+async fn list_models() -> Vec<String> {
+    list_ollama_models().await
 }
 
 // Run function - runs the main tauri app

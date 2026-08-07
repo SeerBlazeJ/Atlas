@@ -1,12 +1,12 @@
 [package]
-name = "chat-app"
+name = "Atlas"
 version = "0.1.0"
-description = ""
-authors = [""]
+description = "Offline-first desktop assistant app"
+authors = ["Kaivan Mehta"]
 edition = "2021"
 
 [lib]
-name = "chat_app_lib"
+name = "Atlas"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -21,3 +21,5 @@ reqwest = { version = "0.12", features = ["json", "stream"] }
 tokio = { version = "1", features = ["full"] }
 futures-util = "0.3"
 tokio-util = { version = "0.7", features = ["io"] }
+futures = "0.3.33"
+rig = "0.41.0"
