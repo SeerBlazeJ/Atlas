@@ -4,3 +4,4 @@ target/
 .DS_Store
 *.local
 Cargo.lock
+.env

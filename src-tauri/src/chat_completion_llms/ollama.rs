@@ -1,40 +1,16 @@
 use std::process::Command;
 
+use crate::chat_completion_llms::chat_structures::*;
 use futures::StreamExt;
 use rig::agent::MultiTurnStreamItem;
 use rig::client::{AgentClientExt, Nothing};
 use rig::prelude::StreamingPrompt;
 use rig::providers::ollama;
 use rig::streaming::StreamedAssistantContent;
-use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 
-#[derive(Serialize, Deserialize, Clone)]
-#[allow(non_camel_case_types)]
-pub enum Role {
-    user,
-    system,
-    assistant,
-}
-
-impl std::fmt::Display for Role {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Role::user => write!(f, "User"),
-            Role::system => write!(f, "System"),
-            Role::assistant => write!(f, "Assistant"),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct ChatMessage {
-    pub role: Role,
-    pub content: String,
-}
-
-pub async fn prompt_stream(
-    model_name: &str,
+pub async fn ollama_prompt_stream(
+    model_id: &str,
     messages: Vec<ChatMessage>,
     think: bool,
     channel: Channel<String>,
@@ -43,7 +19,7 @@ pub async fn prompt_stream(
         ollama::Client::new(Nothing).map_err(|e| format!("Failed to create Ollama client: {e}"))?;
 
     let agent = ollama_client
-        .agent(model_name)
+        .agent(model_id)
         .additional_params(serde_json::json!({ "think": think }))
         .build();
 

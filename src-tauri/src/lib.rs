@@ -1,14 +1,20 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod llm_provider;
-use llm_provider::ollama::{prompt_stream, ChatMessage, Role};
+mod chat_completion_llms;
+use chat_completion_llms::chat_structures::*;
+use chat_completion_llms::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
 use tauri::ipc::Channel;
 
-use crate::llm_provider::ollama::list_ollama_models;
+use crate::chat_completion_llms::ollama::list_ollama_models;
+use crate::chat_completion_llms::openrouter::list_openrouter_models;
 
-// Can be called from the frontend, Interface used to chat with the LLMs
 //  TODO: history of chat functionality is not properly implemented yet - awaiting DB connections
+/// Call the LLM takes in the prompt and and channel as parameters. The token stream is live streamed into the channel as it is generated
 #[tauri::command]
-async fn run_llm(message: String, on_event: Channel<String>) -> Result<String, String> {
+async fn run_llm(
+    message: String,
+    on_event: Channel<String>,
+    think: bool,
+) -> Result<String, String> {
     let history = vec![
         ChatMessage {
             role: Role::system,
@@ -20,13 +26,28 @@ async fn run_llm(message: String, on_event: Channel<String>) -> Result<String, S
         },
     ];
 
-    prompt_stream("qwen3.5:0.8b", history, false, on_event).await
+    openrouter_prompt_stream(
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        history,
+        think,
+        on_event,
+    )
+    .await
 }
 
-/// List all the available models
+/// List all the available models, returns the values as a vector of ("ModelName",Ollama/OpenRouter)
 #[tauri::command]
-async fn list_models() -> Vec<String> {
-    list_ollama_models().await
+async fn list_models() -> Vec<(String, ModelType)> {
+    let mut ls: Vec<(String, ModelType)> = list_ollama_models()
+        .await
+        .into_iter()
+        .map(|x| (x, ModelType::Ollama))
+        .collect();
+    let x: () = list_openrouter_models()
+        .into_iter()
+        .map(|x| ls.push((x, ModelType::OpenRouter)))
+        .collect();
+    ls
 }
 
 // Run function - runs the main tauri app
