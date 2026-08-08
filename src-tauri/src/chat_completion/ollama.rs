@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use crate::chat_completion_llms::chat_structures::*;
+use crate::chat_completion::chat_structures::*;
 use futures::StreamExt;
 use rig::agent::MultiTurnStreamItem;
 use rig::client::{AgentClientExt, Nothing};

@@ -1,11 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod chat_completion_llms;
-use chat_completion_llms::chat_structures::*;
-use chat_completion_llms::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
+mod chat_completion;
+use chat_completion::chat_structures::*;
+use chat_completion::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
 use tauri::ipc::Channel;
 
-use crate::chat_completion_llms::ollama::list_ollama_models;
-use crate::chat_completion_llms::openrouter::list_openrouter_models;
+use crate::chat_completion::ollama::list_ollama_models;
+use crate::chat_completion::openrouter::list_openrouter_models;
 
 //  TODO: history of chat functionality is not properly implemented yet - awaiting DB connections
 /// Call the LLM takes in the prompt and and channel as parameters. The token stream is live streamed into the channel as it is generated
