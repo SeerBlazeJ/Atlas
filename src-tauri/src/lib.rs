@@ -8,12 +8,21 @@ use crate::chat_completion::ollama::list_ollama_models;
 use crate::chat_completion::openrouter::list_openrouter_models;
 
 //  TODO: history of chat functionality is not properly implemented yet - awaiting DB connections
-/// Call the LLM takes in the prompt and and channel as parameters. The token stream is live streamed into the channel as it is generated
+/// Call the LLM takes in the following params:
+///
+/// `Message`: message sent by the user
+///
+/// `on_event`: A channel where response can be live streamed as tokens are generated
+///
+/// `think`: Boolean value to enable/disable reasoning
+///
+/// `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter
 #[tauri::command]
 async fn run_llm(
     message: String,
     on_event: Channel<String>,
     think: bool,
+    model_details: (String, ModelType),
 ) -> Result<String, String> {
     let history = vec![
         ChatMessage {
@@ -25,14 +34,12 @@ async fn run_llm(
             content: message,
         },
     ];
-
-    openrouter_prompt_stream(
-        "nvidia/nemotron-3-super-120b-a12b:free",
-        history,
-        think,
-        on_event,
-    )
-    .await
+    match model_details.1 {
+        ModelType::Ollama => ollama_prompt_stream(model_details.0, history, think, on_event).await,
+        ModelType::OpenRouter => {
+            openrouter_prompt_stream(model_details.0, history, think, on_event).await
+        }
+    }
 }
 
 /// List all the available models, returns the values as a vector of ("ModelName",Ollama/OpenRouter)

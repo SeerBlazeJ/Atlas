@@ -55,7 +55,17 @@ function App() {
       };
 
       // Invokes rust Layer through Tauri's IPC - no HTTP
-      await invoke("run_llm", { message: text, onEvent });
+      try {
+        await invoke("run_llm", {
+          message: text,
+          onEvent: onEvent, // map to Rust's `on_event`
+          think: false,
+          modelDetails: ["qwen3.5:0.8b", "Ollama"]
+        });
+        console.log("Command executed successfully");
+      } catch (error) {
+        console.error("Tauri IPC Error:", error);
+      }
     } catch (err) {
       setMessages((prev) =>
         prev.map((m) =>
@@ -84,7 +94,7 @@ function App() {
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
         </div>
-        <span className="header-title">Assistant</span>
+        <span className="header-title">Atlas</span>
         <div className="header-status">
           <span className="status-dot"></span>
           <span className="status-text">Online</span>

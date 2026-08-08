@@ -1,7 +1,7 @@
 {
-  "productName": "Assistant",
+  "productName": "Atlas",
   "version": "0.1.0",
-  "identifier": "com.assistant.app",
+  "identifier": "com.Atlas.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Assistant",
+        "title": "Atlas",
         "width": 900,
         "height": 680,
         "minWidth": 600,

@@ -43,7 +43,7 @@ const TEXT_MODEL_STORE: [(&str, &str); 13] = [
 ];
 
 pub async fn openrouter_prompt_stream(
-    model_id: &str,
+    model_id: String,
     messages: Vec<ChatMessage>,
     think: bool,
     channel: Channel<String>,

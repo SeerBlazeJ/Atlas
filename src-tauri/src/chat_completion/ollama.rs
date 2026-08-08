@@ -10,7 +10,7 @@ use rig::streaming::StreamedAssistantContent;
 use tauri::ipc::Channel;
 
 pub async fn ollama_prompt_stream(
-    model_id: &str,
+    model_id: String,
     messages: Vec<ChatMessage>,
     think: bool,
     channel: Channel<String>,
