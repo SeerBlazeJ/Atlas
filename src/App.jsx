@@ -30,21 +30,6 @@ const THINKING_SUPPORTED = new Set([
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const MAX_FILES = 10;
 
-function load(key, fallback) {
-  try {
-    const v = localStorage.getItem(key);
-    return v ? JSON.parse(v) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function save(key, val) {
-  try {
-    localStorage.setItem(key, JSON.stringify(val));
-  } catch {}
-}
-
 function dateGroup(iso) {
   const d = new Date(iso);
   const now = new Date();
@@ -231,8 +216,8 @@ function Toast({ message, type, onClose }) {
 function App() {
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
-  const [thinking, setThinking] = useState(() => load("atlas_think", false));
-  const [conversations, setConversations] = useState(() => load("atlas_convos", []));
+  const [thinking, setThinking] = useState(false);
+  const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState([]);
@@ -260,8 +245,6 @@ function App() {
 
   useEffect(() => { scroll(); }, [msgs, isStreaming, scroll]);
   useEffect(() => { inputRef.current?.focus(); }, [activeId]);
-  useEffect(() => { save("atlas_convos", conversations); }, [conversations]);
-  useEffect(() => { save("atlas_think", thinking); }, [thinking]);
 
   useEffect(() => {
     function outside(e) {
@@ -408,19 +391,10 @@ function App() {
       }));
     }
     setModels(parsed);
-    const saved = load("atlas_model", null);
-    if (saved) {
-      const m = parsed.find((x) => x.name === saved.name && x.provider === saved.provider);
-      if (m) { setSelectedModel(m); return; }
-    }
     if (parsed.length > 0) setSelectedModel(parsed[0]);
   };
 
   useEffect(() => { loadModels(); }, []);
-
-  useEffect(() => {
-    if (selectedModel) save("atlas_model", { name: selectedModel.name, provider: selectedModel.provider });
-  }, [selectedModel]);
 
   const getModelId = (model) => {
     if (model.cloud) return OPENROUTER_ID_MAP[model.name] || model.name;
