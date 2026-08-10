@@ -1,4 +1,4 @@
-use crate::chat_completion::chat_structures::*;
+use crate::providers::structures::*;
 use dotenvy::dotenv;
 use futures::StreamExt;
 use rig::prelude::*;
