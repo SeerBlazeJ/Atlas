@@ -8,42 +8,46 @@ use serde_json::json;
 use std::env;
 use tauri::ipc::Channel;
 
-const TEXT_MODEL_STORE: [(&str, &str); 13] = [
-    ("InclusionAi", "inclusionai/ling-3.0-tiny:free"),
-    ("Poolside: Laguna S 2.1", "poolside/laguna-s-2.1:free"),
-    ("Poolside: Laguna XS 2.1", "poolside/laguna-xs-2.1:free"),
-    ("Cohere North mini", "cohere/north-mini-code:free"),
-    (
-        "Nvidia Nemotron 3.5 (content safety)",
-        "nvidia/nemotron-3.5-content-safety:free",
-    ),
-    (
-        "Nvidia Nemotron 3 Ultra",
-        "nvidia/nemotron-3-ultra-550b-a55b:free",
-    ),
+// TODO: Fix the inconsistency in model response, till then, this module will go unused.
+
+const TEXT_MODEL_STORE: [(&str, &str); 11] = [
+    ("Cohere North mini", "cohere/north-mini-code:free"), // Hybrid
+    ("Google Gemma 4", "google/gemma-4-31b-it:free"),     // Hybrid
+    ("Google Gemma 4 (A4B)", "google/gemma-4-26b-a4b-it:free"), // Hybrid
+    ("InclusionAi", "inclusionai/ling-3.0-tiny:free"),    // hybrid
     (
         "Nvidia Nemotron 3 Nano",
         "nvidia/nemotron-3-nano-30b-a3b:free",
-    ),
-    (
-        "Nvidia Nemotron Nano (9B)",
-        "nvidia/nemotron-nano-9b-v2:free",
-    ),
+    ), //Hybrid
     (
         "Nvidia Nemotron 3 Nano Omni",
         "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    ),
+    ), //Hybrid
     (
         "Nvidia Nemotron 3 Super",
         "nvidia/nemotron-3-super-120b-a12b:free",
-    ),
-    ("Google Gemma 4", "google/gemma-4-31b-it:free"),
-    ("Google Gemma 4 (A4B)", "google/gemma-4-26b-a4b-it:free"),
-    ("OpenAI GPT OSS", "openai/gpt-oss-20b:free"),
+    ), // Hybrid
+    (
+        "Nvidia Nemotron 3 Ultra",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+    ), //Hybrid
+    (
+        "Nvidia Nemotron Nano (9B)",
+        "nvidia/nemotron-nano-9b-v2:free",
+    ), //Hybrid
+    ("OpenAI GPT OSS", "openai/gpt-oss-20b:free"),        //Think
+    ("Poolside: Laguna XS 2.1", "poolside/laguna-xs-2.1:free"), //Hybrid
 ];
 
+pub fn get_model_id_binary(target_name: &str) -> Option<&'static str> {
+    TEXT_MODEL_STORE
+        .binary_search_by_key(&target_name, |&(name, _)| name)
+        .ok() // Converts Result<usize, usize> to Option<usize>
+        .map(|index| TEXT_MODEL_STORE[index].1) // Gets the ID at that index
+}
+
 pub async fn openrouter_prompt_stream(
-    model_id: String,
+    model_name: String,
     messages: Vec<ChatMessage>,
     think: bool,
     channel: Channel<String>,
@@ -52,8 +56,7 @@ pub async fn openrouter_prompt_stream(
     let openrouter_api_key =
         env::var("OPENROUTER_API_KEY").map_err(|_| String::from("Openrouter API key not found"))?;
 
-    // let openrouter_api_key =
-    //     String::from("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");
+    let model_id = get_model_id_binary(&model_name).unwrap_or("google/gemma-4-26b-a4b-it:free");
 
     let openrouter_client = openrouter::Client::new(openrouter_api_key)
         .map_err(|_| String::from("Failed ot build openrouter client"))?;
