@@ -34,4 +34,7 @@ Thumbs.db
 
 # Tauri / Rust
 /src-tauri/target/
+/src-tauri/target/.rustc_info.json
 **/*.rs.bk
+
+/src-tauri/gen/
