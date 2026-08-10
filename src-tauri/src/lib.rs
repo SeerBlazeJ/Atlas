@@ -1,13 +1,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod providers;
-use providers::structures::*;
-use providers::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
+mod chat_completion;
+use chat_completion::chat_structures::*;
+use chat_completion::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
 use tauri::ipc::Channel;
-mod database;
 
-use crate::providers::ollama::list_ollama_models;
-use crate::providers::openrouter::list_openrouter_models;
+use crate::chat_completion::ollama::list_ollama_models;
+use crate::chat_completion::openrouter::list_openrouter_models;
 
+//  TODO: history of chat functionality is not properly implemented yet - awaiting DB connections
 /// Call the LLM takes in the following params:
 ///
 /// `Message`: message sent by the user
@@ -17,7 +17,6 @@ use crate::providers::openrouter::list_openrouter_models;
 /// `think`: Boolean value to enable/disable reasoning
 ///
 /// `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter
-//  TODO: history of chat functionality is not properly implemented yet - awaiting DB connections
 #[tauri::command]
 async fn run_llm(
     message: String,
@@ -27,12 +26,10 @@ async fn run_llm(
 ) -> Result<String, String> {
     let history = vec![
         ChatMessage {
-            id: None,
             role: Role::system,
             content: "You are a helpful virtual assistant, aimed to helping the user in the best way you can, while keeping responses clear, concise and brief.".to_string(),
         },
         ChatMessage {
-            id: None,
             role: Role::user,
             content: message,
         },
@@ -65,7 +62,7 @@ async fn list_models() -> Vec<(String, ModelType)> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![run_llm])
+        .invoke_handler(tauri::generate_handler![run_llm, list_models])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
