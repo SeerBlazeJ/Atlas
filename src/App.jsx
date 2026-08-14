@@ -71,13 +71,13 @@ function getFileIcon(name) {
 
 function getFileColor(name) {
   const ext = name.split(".").pop().toLowerCase();
-  const codeExts = new Set(["js","jsx","ts","tsx","py","rs","rb","go","java","c","cpp","h","css","scss","html","json","xml","yaml","yml","sh","bash","dart","swift","kt","kts","vue","svelte","php","sql"]);
-  const imgExts = new Set(["png","jpg","jpeg","gif","webp","svg","bmp","ico"]);
-  const vidExts = new Set(["mp4","mov","avi","mkv","webm"]);
-  const audExts = new Set(["mp3","wav","flac","ogg","aac"]);
-  const docExts = new Set(["pdf","doc","docx","txt","md"]);
-  const sheetExts = new Set(["xls","xlsx","csv"]);
-  const archiveExts = new Set(["zip","rar","7z","tar","gz"]);
+  const codeExts = new Set(["js", "jsx", "ts", "tsx", "py", "rs", "rb", "go", "java", "c", "cpp", "h", "css", "scss", "html", "json", "xml", "yaml", "yml", "sh", "bash", "dart", "swift", "kt", "kts", "vue", "svelte", "php", "sql"]);
+  const imgExts = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"]);
+  const vidExts = new Set(["mp4", "mov", "avi", "mkv", "webm"]);
+  const audExts = new Set(["mp3", "wav", "flac", "ogg", "aac"]);
+  const docExts = new Set(["pdf", "doc", "docx", "txt", "md"]);
+  const sheetExts = new Set(["xls", "xlsx", "csv"]);
+  const archiveExts = new Set(["zip", "rar", "7z", "tar", "gz"]);
 
   if (codeExts.has(ext)) return "#f59e0b";
   if (imgExts.has(ext)) return "#10b981";
@@ -110,12 +110,12 @@ function CodeBlock({ language, code }) {
         <button className="code-block-copy" onClick={copy}>
           {copied ? (
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           ) : (
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-              <path d="M5 15V5a2 2 0 012-2h10" stroke="currentColor" strokeWidth="1.8"/>
+              <rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M5 15V5a2 2 0 012-2h10" stroke="currentColor" strokeWidth="1.8" />
             </svg>
           )}
         </button>
@@ -198,13 +198,13 @@ function Toast({ message, type, onClose }) {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
         {type === "error" ? (
           <>
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8"/>
-            <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </>
         ) : (
           <>
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8"/>
-            <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </>
         )}
       </svg>
@@ -479,7 +479,7 @@ function App() {
         );
       };
 
-      await invoke("run_llm", {
+      await invoke("new_chat", {
         message: text,
         onEvent: channel,
         think: thinking && THINKING_SUPPORTED.has(selectedModel?.name),
@@ -563,9 +563,9 @@ function App() {
         <div className="drop-overlay">
           <div className="drop-overlay-content">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M17 8l-5-5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 3v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M17 8l-5-5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 3v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span>Drop files to attach</span>
           </div>
@@ -581,20 +581,20 @@ function App() {
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sidebar-header">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
           </svg>
           Atlas
         </div>
         <button className="new-chat-btn" onClick={newChat}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           New chat
         </button>
         <div className="search-box">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
-            <path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+            <path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <input
             type="text"
@@ -614,12 +614,12 @@ function App() {
                   onClick={() => openChat(c.id)}
                 >
                   <svg className="history-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <span className="history-item-title">{c.title}</span>
                   <button className="history-item-delete" onClick={(e) => deleteChat(c.id, e)}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </button>
                 </div>
@@ -628,8 +628,8 @@ function App() {
           ))}
           {conversations.length === 0 && (
             <div className="history-empty">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{opacity: 0.3, marginBottom: "8px"}}>
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.3, marginBottom: "8px" }}>
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               No conversations yet
             </div>
@@ -641,7 +641,7 @@ function App() {
         <div className="topbar">
           <button className="menu-toggle" onClick={() => setSidebarOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
 
@@ -649,18 +649,18 @@ function App() {
             <button className="model-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
               {selectedModel?.cloud ? (
                 <svg className="model-type-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M6.5 19a4.5 4.5 0 01-.4-8.98A5.5 5.5 0 0116.5 8.5a4 4 0 01-.5 7.97" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6.5 19a4.5 4.5 0 01-.4-8.98A5.5 5.5 0 0116.5 8.5a4 4 0 01-.5 7.97" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               ) : (
                 <svg className="model-type-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                  <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               )}
               {selectedModel?.cloud && <span className="model-dot online" />}
               <span className="model-name">{selectedModel ? selectedModel.name : "Select model"}</span>
               <svg className="model-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
 
@@ -679,12 +679,12 @@ function App() {
                       <span className="model-option-name-text">{m.name}</span>
                       {m.cloud ? (
                         <svg className="model-type-icon-sm" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                          <path d="M6.5 19a4.5 4.5 0 01-.4-8.98A5.5 5.5 0 0116.5 8.5a4 4 0 01-.5 7.97" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M6.5 19a4.5 4.5 0 01-.4-8.98A5.5 5.5 0 0116.5 8.5a4 4 0 01-.5 7.97" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       ) : (
                         <svg className="model-type-icon-sm" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                          <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                          <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       )}
                       {m.cloud && <span className="model-dot online" />}
@@ -692,7 +692,7 @@ function App() {
                     <div className="model-option-provider">{m.provider}</div>
                   </div>
                   <svg className="model-option-check" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
               ))}
@@ -708,7 +708,7 @@ function App() {
               <div className="empty-state">
                 <div className="empty-state-icon">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                    <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <h2>What can I help with?</h2>
@@ -720,7 +720,7 @@ function App() {
                   {msg.role === "bot" && (
                     <div className="msg-avatar">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+                        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
                       </svg>
                     </div>
                   )}
@@ -743,7 +743,7 @@ function App() {
                       </div>
                     )}
                     {msg.role === "user" ? (
-                      <div className="msg-text user-bubble">{msg.text || <em style={{opacity: 0.7}}>Sent files</em>}</div>
+                      <div className="msg-text user-bubble">{msg.text || <em style={{ opacity: 0.7 }}>Sent files</em>}</div>
                     ) : (
                       <>
                         {msg.text === "" ? (
@@ -755,8 +755,8 @@ function App() {
                           <div className="msg-actions">
                             <button className="msg-action" onClick={() => navigator.clipboard?.writeText(msg.text)} title="Copy">
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                <rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-                                <path d="M5 15V5a2 2 0 012-2h10" stroke="currentColor" strokeWidth="1.8"/>
+                                <rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                                <path d="M5 15V5a2 2 0 012-2h10" stroke="currentColor" strokeWidth="1.8" />
                               </svg>
                             </button>
                           </div>
@@ -786,7 +786,7 @@ function App() {
                     </div>
                     <button className="file-preview-remove" onClick={() => removeFile(i)}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                       </svg>
                     </button>
                   </div>
@@ -799,8 +799,8 @@ function App() {
                 {fileErrors.map((err, i) => (
                   <div className="file-error-item" key={i}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8"/>
-                      <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                     <span>{err}</span>
                   </div>
@@ -811,7 +811,7 @@ function App() {
             <div className="input-row">
               <button className="icon-btn" onClick={() => fileRef.current?.click()} title="Attach file">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
               <input type="file" ref={fileRef} multiple hidden onChange={handleFileInput} />
@@ -831,13 +831,13 @@ function App() {
               {isStreaming ? (
                 <button className="stop-btn" onClick={stop} title="Stop">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
                   </svg>
                 </button>
               ) : (
                 <button className="send-btn" onClick={send} disabled={(!input.trim() && files.length === 0) || !selectedModel} title="Send">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 19V5M12 5l-6 6M12 5l6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 19V5M12 5l-6 6M12 5l6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               )}

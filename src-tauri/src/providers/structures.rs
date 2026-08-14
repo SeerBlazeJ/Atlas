@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::types::SurrealValue;
 
-#[derive(Serialize, Deserialize, SurrealValue)]
+#[derive(Clone, Serialize, Deserialize, SurrealValue)]
 #[allow(non_camel_case_types)]
 pub enum Role {
     user,
@@ -19,9 +19,8 @@ impl std::fmt::Display for Role {
     }
 }
 
-#[derive(Serialize, Deserialize, SurrealValue)]
+#[derive(Clone, Serialize, Deserialize, SurrealValue)]
 pub struct ChatMessage {
-    pub id: Option<String>,
     pub role: Role,
     pub content: String,
 }
@@ -35,5 +34,18 @@ pub enum ModelType {
 #[derive(Serialize, Deserialize)]
 pub struct Conversation {
     pub id: Option<String>,
+    pub title: String,
     pub messages: Vec<ChatMessage>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Summary {
+    pub id: String,
+    pub title: String,
+}
+
+impl ToString for ChatMessage {
+    fn to_string(&self) -> String {
+        format!("{} : {}", self.role, self.content)
+    }
 }

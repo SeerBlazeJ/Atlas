@@ -39,3 +39,4 @@ Thumbs.db
 **/*.rs.bk
 
 /src-tauri/gen/
+AtlasDB/
