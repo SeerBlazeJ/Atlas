@@ -13,6 +13,22 @@ use crate::database::chat_store::{
 use crate::providers::ollama::{list_ollama_models, set_chat_name};
 // use crate::providers::openrouter::list_openrouter_models;
 
+/// Used when the user want to continue an existing conversation.
+///
+/// Takes in the following params
+///
+/// * `message`: Message sent by the user to the LLM
+///
+/// * `on_event`: A channel where response can be live streamed as tokens are generated
+///
+/// * `think`: Boolean value to enable/disable reasoning
+///
+/// * `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter (Suspended Temporarily)
+///
+///
+/// Returns the following:
+/// - Success: Return the id of the conversation and the response of the LLM as a String in a tuple
+/// - Error: Returns a string with error description
 #[tauri::command]
 async fn new_chat(
     message: String,
@@ -47,6 +63,24 @@ async fn new_chat(
     Ok((id, res))
 }
 
+/// Used when the user want to continue an existing conversation.
+///
+/// Takes in the following params
+///
+/// * `id`: Id of the chat the user wants to continue
+///
+/// * `message`: Message sent by the user to the LLM
+///
+/// * `on_event`: A channel where response can be live streamed as tokens are generated
+///
+/// * `think`: Boolean value to enable/disable reasoning
+///
+/// * `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter (Suspended Temporarily)
+///
+///
+/// Returns the following:
+/// - Success: Return the the response of the Model
+/// - Error: Returns a string with error description
 #[tauri::command]
 async fn continue_conversation(
     id: String,
@@ -100,6 +134,7 @@ async fn run_llm(
     }
 }
 
+/// Returns a list of Summary, which contains the id of the conversation and its title
 #[tauri::command]
 async fn load_chatlist() -> Result<Vec<Summary>, String> {
     list_chats()
@@ -107,7 +142,7 @@ async fn load_chatlist() -> Result<Vec<Summary>, String> {
         .map_err(|e| format!("Error loading chats: {e}"))
 }
 
-/// List all the available models, returns the values as a vector of ("ModelName",Ollama/OpenRouter)
+/// List all the available models, returns the values as a vector of ("ModelName","Ollama"/"OpenRouter")
 #[tauri::command]
 async fn list_models() -> Vec<(String, ModelType)> {
     let ls: Vec<(String, ModelType)> = list_ollama_models()
@@ -122,6 +157,7 @@ async fn list_models() -> Vec<(String, ModelType)> {
     ls
 }
 
+/// Stop ollama process before closing the app
 fn stop_ollama() {
     #[cfg(target_os = "windows")]
     {
