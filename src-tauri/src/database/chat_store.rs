@@ -43,7 +43,7 @@ pub async fn load_chat_memory(id: &String) -> Result<Conversation, Error> {
 pub async fn list_chats() -> Result<Vec<Summary>, Error> {
     let db = Surreal::new::<SurrealKv>("AtlasDB").await?;
     db.use_ns("Atlas").use_db("Conversations").await?;
-    let mut res = db.query("SELECT id, title FROM chats").await?;
+    let mut res = db.query("SELECT id, title FROM chats ORDER BY id DESC").await?;
     let chats: Vec<SummaryDB> = res.take(0)?;
     Ok(chats.into_iter().map(Summary::from).collect())
 }

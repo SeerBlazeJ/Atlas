@@ -2,13 +2,12 @@
 mod providers;
 use std::process::Command;
 
-use anyhow::Result;
 use providers::structures::*;
 use providers::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
 use tauri::ipc::Channel;
 mod database;
 use crate::database::chat_store::{
-    create_chat_memory, list_chats, load_chat_memory, update_chat_memory,
+    create_chat_memory, list_chats, update_chat_memory,
 };
 use crate::providers::ollama::{list_ollama_models, set_chat_name};
 // use crate::providers::openrouter::list_openrouter_models;
@@ -89,7 +88,7 @@ async fn continue_conversation(
     think: bool,
     model_details: (String, ModelType),
 ) -> Result<String, String> {
-    let history = load_chat_memory(&id).await.map_err(|x| x.to_string())?;
+    let history = crate::database::chat_store::load_chat_memory(&id).await.map_err(|x| x.to_string())?;
     let mut messages = history.messages;
     messages.push(ChatMessage {
         role: Role::user,
@@ -108,6 +107,14 @@ async fn continue_conversation(
     .await
     .map_err(|x| x.to_string())?;
     Ok(res)
+}
+
+/// Load a single chat's full data from DB by id
+#[tauri::command]
+async fn load_chat_memory(id: String) -> Result<Conversation, String> {
+    crate::database::chat_store::load_chat_memory(&id)
+        .await
+        .map_err(|e| format!("Error loading chat: {e}"))
 }
 
 /// Call the LLM takes in the following params:
@@ -186,17 +193,18 @@ pub fn run() {
     }
     #[cfg(target_os = "windows")]
     {
-        let _ = Command::new("net");
+        let _ = Command::new("net")
+            .args(["start", "ollama"])
+            .output();
     }
-    .args(["start", "ollama"])
-    .output();
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             new_chat,
             continue_conversation,
             list_models,
-            load_chatlist
+            load_chatlist,
+            load_chat_memory
         ])
         .build(tauri::generate_context!()) // Use .build() instead of .run() directly
         .expect("error while building tauri application")
