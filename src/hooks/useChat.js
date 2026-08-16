@@ -12,9 +12,6 @@ export default function useChat(addToast) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
 
-  // Per-chat draft storage
-  const [drafts, setDrafts] = useState({});
-
   const endRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -68,25 +65,6 @@ export default function useChat(addToast) {
     };
     loadChatList();
   }, []);
-
-  // Save draft for current chat before switching
-  const saveDraft = useCallback((chatId, text) => {
-    if (!chatId) return;
-    setDrafts((prev) => {
-      if (!text && prev[chatId]) {
-        const next = { ...prev };
-        delete next[chatId];
-        return next;
-      }
-      if (prev[chatId] === text) return prev;
-      return { ...prev, [chatId]: text };
-    });
-  }, []);
-
-  // Get draft for a chat
-  const getDraft = useCallback((chatId) => {
-    return drafts[chatId] || "";
-  }, [drafts]);
 
   // Load messages when a chat is opened from sidebar
   const openChat = useCallback(async (id) => {
@@ -189,12 +167,10 @@ export default function useChat(addToast) {
         if (result && result[0]) {
           const realId = result[0];
           setActiveChatId(realId);
-          // Remove pending entry, keep user message as temp title until refreshChatList returns with AI title
           setChatList((prev) => {
             const cleaned = prev.filter((c) => !c.id.startsWith("pending_"));
             return [{ id: realId, title: trimmed.slice(0, 60) }, ...cleaned];
           });
-          // refreshChatList will replace the temp title with AI-generated title from DB
           refreshChatList();
         }
       }
@@ -246,7 +222,5 @@ export default function useChat(addToast) {
     startNewChat,
     send,
     refreshChatList,
-    saveDraft,
-    getDraft,
   };
 }

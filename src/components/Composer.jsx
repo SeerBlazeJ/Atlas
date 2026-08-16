@@ -13,12 +13,15 @@ export default function Composer({ input, setInput, isStreaming, selectedModel, 
   const thinkStatus = selectedModel ? getThinkingStatus(selectedModel.name) : "supported";
   const isMandatory = thinkStatus === "mandatory";
 
-  // Reset textarea height when input is cleared
+  // Auto-resize textarea without visual glitch
   const handleChange = (e) => {
     setInput(e.target.value);
     const ta = e.target;
-    ta.style.height = "auto";
-    ta.style.height = Math.min(ta.scrollHeight, 180) + "px";
+    // Only recalc if content actually changed height
+    const next = Math.min(ta.scrollHeight, 180) + "px";
+    if (ta.style.height !== next) {
+      ta.style.height = next;
+    }
   };
 
   return (

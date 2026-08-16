@@ -1,17 +1,19 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
-import useChat from "./hooks/useChat";
-import useToast from "./hooks/useToast";
-import Toast from "./components/Toast";
-import Sidebar from "./components/Sidebar";
-import TopBar from "./components/TopBar";
-import MessageList from "./components/MessageList";
-import Composer from "./components/Composer";
+import useChat from "./hooks/useChat.js";
+import useToast from "./hooks/useToast.js";
+import Toast from "./components/Toast.jsx";
+import Sidebar from "./components/Sidebar.jsx";
+import TopBar from "./components/TopBar.jsx";
+import MessageList from "./components/MessageList.jsx";
+import Composer from "./components/Composer.jsx";
 
 function App() {
   const { toasts, addToast, removeToast } = useToast();
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const drafts = useRef({});
+  const prevChatId = useRef(null);
 
   const {
     models,
@@ -29,43 +31,40 @@ function App() {
     openChat,
     startNewChat,
     send,
-    saveDraft,
-    getDraft,
   } = useChat(addToast);
 
-  // Reset textarea height helper
-  const resetTextareaHeight = useCallback(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = "auto";
+  // Save draft on every input change (avoids stale closure)
+  useEffect(() => {
+    if (prevChatId.current !== null) {
+      drafts.current[prevChatId.current] = input;
     }
-  }, [inputRef]);
+  }, [input]);
 
-  // When activeChatId changes, restore draft or clear input
+  // Restore draft when switching chats
   useEffect(() => {
-    const draft = getDraft(activeChatId);
-    setInput(draft);
-    resetTextareaHeight();
-  }, [activeChatId, getDraft, resetTextareaHeight]);
-
-  // Save draft whenever input changes
-  useEffect(() => {
-    saveDraft(activeChatId, input);
-  }, [input, activeChatId, saveDraft]);
+    if (activeChatId === prevChatId.current) return;
+    prevChatId.current = activeChatId;
+    const saved = drafts.current[activeChatId] || "";
+    setInput(saved);
+    // Reset textarea height after React re-renders with new value
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        if (saved) {
+          inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 180) + "px";
+        } else {
+          inputRef.current.style.height = "21px";
+        }
+      }
+    });
+  }, [activeChatId]);
 
   const handleSend = () => {
     send(input, setInput);
-    resetTextareaHeight();
+    drafts.current[activeChatId] = "";
+    if (inputRef.current) {
+      inputRef.current.style.height = "21px";
+    }
   };
-
-  // Open chat — save draft first is handled by the useEffect above
-  const handleOpenChat = useCallback((id) => {
-    openChat(id);
-  }, [openChat]);
-
-  // New chat
-  const handleNewChat = useCallback(() => {
-    startNewChat();
-  }, [startNewChat]);
 
   return (
     <div className="app">
@@ -78,8 +77,8 @@ function App() {
       <Sidebar
         chatList={chatList}
         activeChatId={activeChatId}
-        onOpenChat={handleOpenChat}
-        onNewChat={handleNewChat}
+        onOpenChat={openChat}
+        onNewChat={startNewChat}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

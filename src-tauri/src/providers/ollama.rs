@@ -76,17 +76,16 @@ pub async fn set_chat_name(conversation: String) -> Result<String> {
         .map_err(|e| Error::msg(format!("Failed summarizing conversation: {e}")))?
         .agent("qwen3.5:0.8b")
         .preamble(
-        r#"You are a title generator. Create a short, 3 to 5 word title for this chat.
-        RULES:
-        1. Focus ONLY on the user's MAIN request or topic — ignore greetings, small talk, and pleasantries like "hello", "hi", "thanks".
-        2. If the conversation has multiple topics, use the MOST RECENT or MOST SUBSTANTIVE topic.
-        3. Keep it simple and natural (e.g., name the task or topic).
-        4. Output ONLY the title. No quotes, no periods, no filler words.
-        EXAMPLES:
-        Input: "User : hello\nAssistant : Hi! How can I help?\nUser : write an essay on odyssey" -> Output: Essay on Odyssey
-        Input: "User : Write a 300 word essay on rust language" -> Output: Rust Language Essay
-        Input: "User : How do I center a div in CSS?" -> Output: Centering a CSS Div
-        "#,
+            r#"You are a title generator. Create a short, 3 to 5 word title for this chat based on the user's primary request. 
+RULES:
+1. Focus ONLY on what the user asked for.
+2. Keep it simple and natural (e.g., name the task or topic).
+3. Output ONLY the title. No quotes, no periods, no filler words.
+EXAMPLES:
+Input: "Write a 300 word essay on rust language" -> Output: Rust Language Essay
+Input: "How do I center a div in CSS?" -> Output: Centering a CSS Div
+Input: "Explain quantum physics to a 5 year old" -> Output: Quantum Physics Explained
+    "#,
         )
         .additional_params(serde_json::json!({ "think": false }))
         .build()

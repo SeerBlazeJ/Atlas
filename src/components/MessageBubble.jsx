@@ -1,4 +1,4 @@
-import { BotMessage } from "./MarkdownRenderer";
+import { BotMessage } from "./MarkdownRenderer.jsx";
 
 export default function MessageBubble({ msg }) {
   if (msg.role === "user") {

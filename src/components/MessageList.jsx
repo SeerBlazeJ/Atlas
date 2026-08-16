@@ -1,5 +1,5 @@
-import { useRef, useEffect } from "react";
-import MessageBubble from "./MessageBubble";
+import { useRef } from "react";
+import MessageBubble from "./MessageBubble.jsx";
 
 export default function MessageList({ messages, isStreaming, loadingChat, endRef }) {
   const innerRef = useRef(null);
