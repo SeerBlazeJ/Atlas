@@ -37,18 +37,19 @@ async fn new_chat(
 ) -> Result<(String, String), String> {
     let mut history = vec![ChatMessage {
         role: Role::user,
-        content: message,
+        content: message.clone(),
     }];
     let res = run_llm(&history, on_event, think, model_details).await?;
     history.push(ChatMessage {
         role: Role::assistant,
         content: res.clone(),
     });
-    let history_str: String = history
-        .iter()
-        .map(|e| e.to_string())
-        .collect::<Vec<String>>()
-        .join("\n");
+    // let history_str: String = history
+    //     .iter()
+    //     .map(|e| e.to_string())
+    //     .collect::<Vec<String>>()
+    //     .join("\n");
+    let history_str = message;
     let summary = set_chat_name(history_str)
         .await
         .map_err(|x| x.to_string())?;

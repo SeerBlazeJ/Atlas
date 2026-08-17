@@ -96,6 +96,7 @@ pub async fn openrouter_prompt_stream(
     Ok(full_text)
 }
 
+#[allow(dead_code)]
 pub fn list_openrouter_models() -> Vec<String> {
     TEXT_MODEL_STORE
         .into_iter()
