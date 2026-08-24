@@ -2,13 +2,12 @@
 mod providers;
 use std::process::Command;
 
+use chrono::Utc;
 use providers::structures::*;
 use providers::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
 use tauri::ipc::Channel;
 mod database;
-use crate::database::chat_store::{
-    create_chat_memory, list_chats, update_chat_memory,
-};
+use crate::database::chat_store::{create_chat_memory, list_chats, update_chat_memory};
 use crate::providers::ollama::{list_ollama_models, set_chat_name};
 // use crate::providers::openrouter::list_openrouter_models;
 
@@ -55,6 +54,7 @@ async fn new_chat(
         .map_err(|x| x.to_string())?;
     let id = create_chat_memory(Conversation {
         id: None,
+        created: Utc::now(),
         title: summary,
         messages: history,
     })
@@ -89,7 +89,9 @@ async fn continue_conversation(
     think: bool,
     model_details: (String, ModelType),
 ) -> Result<String, String> {
-    let history = crate::database::chat_store::load_chat_memory(&id).await.map_err(|x| x.to_string())?;
+    let history = crate::database::chat_store::load_chat_memory(&id)
+        .await
+        .map_err(|x| x.to_string())?;
     let mut messages = history.messages;
     messages.push(ChatMessage {
         role: Role::user,
@@ -102,6 +104,7 @@ async fn continue_conversation(
     });
     let _ = update_chat_memory(Conversation {
         id: history.id,
+        created: history.created,
         title: history.title,
         messages,
     })
@@ -145,9 +148,11 @@ async fn run_llm(
 /// Returns a list of Summary, which contains the id of the conversation and its title
 #[tauri::command]
 async fn load_chatlist() -> Result<Vec<Summary>, String> {
-    list_chats()
+    let x = list_chats()
         .await
-        .map_err(|e| format!("Error loading chats: {e}"))
+        .map_err(|e| format!("Error loading chats: {e}"))?;
+    dbg!(&x);
+    Ok(x)
 }
 
 /// List all the available models, returns the values as a vector of ("ModelName","Ollama"/"OpenRouter")
@@ -194,9 +199,7 @@ pub fn run() {
     }
     #[cfg(target_os = "windows")]
     {
-        let _ = Command::new("net")
-            .args(["start", "ollama"])
-            .output();
+        let _ = Command::new("net").args(["start", "ollama"]).output();
     }
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())

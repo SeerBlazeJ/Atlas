@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use surrealdb::types::SurrealValue;
 
@@ -34,6 +35,7 @@ pub enum ModelType {
 #[derive(Serialize, Deserialize)]
 pub struct Conversation {
     pub id: Option<String>,
+    pub created: DateTime<Utc>,
     pub title: String,
     pub messages: Vec<ChatMessage>,
 }
