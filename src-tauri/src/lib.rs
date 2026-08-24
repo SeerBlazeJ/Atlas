@@ -2,6 +2,7 @@
 mod providers;
 use std::process::Command;
 
+mod tools;
 use chrono::Utc;
 use providers::structures::*;
 use providers::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
@@ -152,11 +153,9 @@ async fn run_llm(
 /// Returns a list of Summary, which contains the id of the conversation and its title
 #[tauri::command]
 async fn load_chatlist() -> Result<Vec<Summary>, String> {
-    let x = list_chats()
+    list_chats()
         .await
-        .map_err(|e| format!("Error loading chats: {e}"))?;
-    dbg!(&x);
-    Ok(x)
+        .map_err(|e| format!("Error loading chats: {e}"))
 }
 
 /// List all the available models, returns the values as a vector of ("ModelName","Ollama"/"OpenRouter")

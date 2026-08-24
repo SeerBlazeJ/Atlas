@@ -33,7 +33,7 @@ Thumbs.db
 *.swo
 
 # Tauri / Rust
-/src-tauri/target/
+target/
 /src-tauri/Cargo.lock
 /src-tauri/target/.rustc_info.json
 **/*.rs.bk

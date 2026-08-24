@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use crate::providers::structures::*;
+use crate::tools::web::WebSearchTool;
 use anyhow::{Error, Result};
 use futures::StreamExt;
 use rig::agent::MultiTurnStreamItem;
@@ -26,6 +27,8 @@ pub async fn ollama_prompt_stream(
 
     let agent = ollama_client
         .agent(model_id)
+        .default_max_turns(10)
+        .tool(WebSearchTool)
         .append_preamble(DEFAULT_PREAMBLE)
         .additional_params(serde_json::json!({ "think": think }))
         .build();

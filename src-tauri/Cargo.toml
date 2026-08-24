@@ -27,3 +27,4 @@ dotenvy = "0.15"
 surrealdb = { version = "3.2.4", features = ["kv-surrealkv"] }
 anyhow = "1.0.104"
 chrono = "0.4.45"
+# rig-core = "0.42.0"
