@@ -5,15 +5,19 @@ use anyhow::{Error, Result};
 use futures::StreamExt;
 use rig::agent::MultiTurnStreamItem;
 use rig::client::{AgentClientExt, Nothing};
-use rig::completion::Prompt;
-use rig::prelude::StreamingPrompt;
+use rig::completion::{Message, Prompt};
 use rig::providers::ollama;
-use rig::streaming::StreamedAssistantContent;
+use rig::streaming::{StreamedAssistantContent, StreamingChat};
 use tauri::ipc::Channel;
+
+const DEFAULT_PREAMBLE: &str =
+    "You are a helpful virtual assistant, aimed to helping the user in the best way you can, \
+     while keeping responses clear, concise and brief.";
 
 pub async fn ollama_prompt_stream(
     model_id: String,
-    messages: &Vec<ChatMessage>,
+    history: &Vec<ChatMessage>,
+    message: &String,
     think: bool,
     channel: Channel<String>,
 ) -> Result<String, String> {
@@ -21,17 +25,18 @@ pub async fn ollama_prompt_stream(
         ollama::Client::new(Nothing).map_err(|e| format!("Failed to create Ollama client: {e}"))?;
 
     let agent = ollama_client
-        .agent(model_id).append_preamble("You are a helpful virtual assistant, aimed to helping the user in the best way you can, while keeping responses clear, concise and brief.")
+        .agent(model_id)
+        .append_preamble(DEFAULT_PREAMBLE)
         .additional_params(serde_json::json!({ "think": think }))
         .build();
 
-    let prompt = messages
-        .iter()
-        .map(|m| format!("{}: {}", m.role, m.content))
-        .collect::<Vec<String>>()
-        .join("\n\n");
+    let history: Vec<Message> = history
+        .to_owned()
+        .into_iter()
+        .map(|x| x.to_rig_message().unwrap())
+        .collect();
 
-    let mut stream = agent.stream_prompt(&prompt).await;
+    let mut stream = agent.stream_chat(&*message, history).await;
 
     let mut full_text = String::new();
 

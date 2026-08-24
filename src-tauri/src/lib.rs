@@ -34,21 +34,22 @@ async fn new_chat(
     think: bool,
     model_details: (String, ModelType),
 ) -> Result<(String, String), String> {
-    let mut history = vec![ChatMessage {
-        role: Role::user,
-        content: message.clone(),
-    }];
-    let res = run_llm(&history, on_event, think, model_details).await?;
-    history.push(ChatMessage {
-        role: Role::assistant,
-        content: res.clone(),
-    });
-    // let history_str: String = history
-    //     .iter()
-    //     .map(|e| e.to_string())
-    //     .collect::<Vec<String>>()
-    //     .join("\n");
-    let history_str = message;
+    let res = run_llm(&Vec::new(), &message, on_event, think, model_details).await?;
+    let history = vec![
+        ChatMessage {
+            role: Role::User,
+            content: message,
+        },
+        ChatMessage {
+            role: Role::Assistant,
+            content: res.clone(),
+        },
+    ];
+    let history_str: String = history
+        .iter()
+        .map(|e| e.to_string())
+        .collect::<Vec<String>>()
+        .join("\n");
     let summary = set_chat_name(history_str)
         .await
         .map_err(|x| x.to_string())?;
@@ -89,17 +90,15 @@ async fn continue_conversation(
     think: bool,
     model_details: (String, ModelType),
 ) -> Result<String, String> {
-    let history = crate::database::chat_store::load_chat_memory(&id)
-        .await
-        .map_err(|x| x.to_string())?;
+    let history = load_chat_memory(id).await.map_err(|x| x.to_string())?;
     let mut messages = history.messages;
+    let res = run_llm(&messages, &message, on_event, think, model_details).await?;
     messages.push(ChatMessage {
-        role: Role::user,
+        role: Role::User,
         content: message,
     });
-    let res = run_llm(&messages, on_event, think, model_details).await?;
     messages.push(ChatMessage {
-        role: Role::assistant,
+        role: Role::Assistant,
         content: res.clone(),
     });
     let _ = update_chat_memory(Conversation {
@@ -125,6 +124,8 @@ async fn load_chat_memory(id: String) -> Result<Conversation, String> {
 ///
 /// `History`: History of the conversation till now
 ///
+/// `Message` : The message last sent by the user
+///
 /// `on_event`: A channel where response can be live streamed as tokens are generated
 ///
 /// `think`: Boolean value to enable/disable reasoning
@@ -132,13 +133,16 @@ async fn load_chat_memory(id: String) -> Result<Conversation, String> {
 /// `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter (Suspended Temporarily)
 async fn run_llm(
     history: &Vec<ChatMessage>,
+    message: &String,
     on_event: Channel<String>,
     think: bool,
     model_details: (String, ModelType),
 ) -> Result<String, String> {
     // Load history and add it to context using .add_context, pass it as a param to the function
     match model_details.1 {
-        ModelType::Ollama => ollama_prompt_stream(model_details.0, history, think, on_event).await,
+        ModelType::Ollama => {
+            ollama_prompt_stream(model_details.0, history, message, think, on_event).await
+        }
         ModelType::OpenRouter => {
             openrouter_prompt_stream(model_details.0, history, think, on_event).await
         }

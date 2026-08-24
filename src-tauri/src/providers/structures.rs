@@ -1,21 +1,26 @@
 use chrono::{DateTime, Utc};
+use rig::{
+    completion::Message,
+    message::{AssistantContent, UserContent},
+    OneOrMany,
+};
 use serde::{Deserialize, Serialize};
 use surrealdb::types::SurrealValue;
 
-#[derive(Clone, Serialize, Deserialize, SurrealValue)]
-#[allow(non_camel_case_types)]
+#[derive(Clone, Copy, Serialize, Deserialize, SurrealValue)]
+#[serde(rename_all = "lowercase")]
 pub enum Role {
-    user,
-    system,
-    assistant,
+    User,
+    System,
+    Assistant,
 }
 
 impl std::fmt::Display for Role {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Role::user => write!(f, "User"),
-            Role::system => write!(f, "System"),
-            Role::assistant => write!(f, "Assistant"),
+            Role::User => write!(f, "User"),
+            Role::System => write!(f, "System"),
+            Role::Assistant => write!(f, "Assistant"),
         }
     }
 }
@@ -24,6 +29,21 @@ impl std::fmt::Display for Role {
 pub struct ChatMessage {
     pub role: Role,
     pub content: String,
+}
+
+impl ChatMessage {
+    pub fn to_rig_message(&self) -> Option<Message> {
+        match self.role {
+            Role::User => Some(Message::User {
+                content: OneOrMany::one(UserContent::text(self.content.clone())),
+            }),
+            Role::Assistant => Some(Message::Assistant {
+                content: OneOrMany::one(AssistantContent::text(self.content.clone())),
+                id: None,
+            }),
+            Role::System => None, // handled separately via preamble
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]

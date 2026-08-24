@@ -28,6 +28,8 @@ pub async fn update_chat_memory(data: Conversation) -> Result<(), Error> {
     Ok(())
 }
 
+// pub async fn append_to_conv_mem
+
 pub async fn load_chat_memory(id: &String) -> Result<Conversation, Error> {
     let db = Surreal::new::<SurrealKv>("AtlasDB").await?;
     db.use_ns("Atlas").use_db("Conversations").await?;
