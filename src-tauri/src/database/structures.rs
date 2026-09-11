@@ -6,12 +6,12 @@ use surrealdb::types::{RecordId, SurrealValue, ToSql};
 #[derive(Serialize, Deserialize, SurrealValue)]
 pub struct ConversationDB {
     pub id: Option<RecordId>,
-    created: DateTime<Utc>,
+    updated: DateTime<Utc>,
     title: String,
     messages: Vec<ChatMessage>,
 }
 
-#[derive(Serialize, Deserialize, SurrealValue)]
+#[derive(Debug, Serialize, Deserialize, SurrealValue)]
 pub struct SummaryDB {
     pub id: RecordId,
     pub title: String,
@@ -20,10 +20,8 @@ pub struct SummaryDB {
 impl From<Conversation> for ConversationDB {
     fn from(value: Conversation) -> Self {
         Self {
-            id: value
-                .id
-                .and_then(|x| Some(RecordId::parse_simple(&x).unwrap())),
-            created: value.created,
+            id: value.id.map(|x| RecordId::parse_simple(&x).unwrap()),
+            updated: value.updated,
             title: value.title,
             messages: value.messages,
         }
@@ -34,7 +32,7 @@ impl From<ConversationDB> for Conversation {
     fn from(value: ConversationDB) -> Self {
         Self {
             id: value.id.map(|x| x.to_sql()),
-            created: value.created,
+            updated: value.updated,
             title: value.title,
             messages: value.messages,
         }

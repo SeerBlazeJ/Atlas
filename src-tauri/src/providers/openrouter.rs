@@ -48,7 +48,7 @@ pub fn get_model_id_binary(target_name: &str) -> Option<&'static str> {
 
 pub async fn openrouter_prompt_stream(
     model_name: String,
-    messages: &Vec<ChatMessage>,
+    messages: &[ChatMessage],
     think: bool,
     channel: Channel<String>,
 ) -> Result<String, String> {

@@ -1,41 +1,44 @@
 #![allow(non_snake_case)]
-mod providers;
-use std::process::Command;
-
-mod tools;
-use chrono::Utc;
-use providers::structures::*;
-use providers::{ollama::ollama_prompt_stream, openrouter::openrouter_prompt_stream};
-use tauri::ipc::Channel;
 mod database;
-use crate::database::chat_store::{create_chat_memory, list_chats, update_chat_memory};
-use crate::providers::ollama::{list_ollama_models, set_chat_name};
-// use crate::providers::openrouter::list_openrouter_models;
+mod providers;
+mod tools;
+mod voice;
 
-/// Used when the user want to continue an existing conversation.
-///
-/// Takes in the following params
-///
-/// * `message`: Message sent by the user to the LLM
-///
-/// * `on_event`: A channel where response can be live streamed as tokens are generated
-///
-/// * `think`: Boolean value to enable/disable reasoning
-///
-/// * `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter (Suspended Temporarily)
-///
-///
-/// Returns the following:
-/// - Success: Return the id of the conversation and the response of the LLM as a String in a tuple
-/// - Error: Returns a string with error description
+use chrono::Utc;
+use database::chat_store::{create_chat_memory, list_chats, update_chat_memory};
+use database::document_memory::{build_vector_store, upload_text_file_to_memory};
+use providers::ollama::{list_ollama_models, ollama_prompt_stream, set_chat_name};
+use providers::openrouter::openrouter_prompt_stream;
+use providers::structures::*;
+use std::process::Command;
+use surrealdb::{
+    engine::local::{Db, SurrealKv},
+    Surreal,
+};
+use tauri::ipc::Channel;
+use tauri::Manager;
+use voice::stt::{send_audio_chunk, start_stream, stop_stream};
+
+/// Used when starting a brand new conversation session.
 #[tauri::command]
 async fn new_chat(
     message: String,
     on_event: Channel<String>,
     think: bool,
     model_details: (String, ModelType),
+    db: tauri::State<'_, Surreal<Db>>,
 ) -> Result<(String, String), String> {
-    let res = run_llm(&Vec::new(), &message, on_event, think, model_details).await?;
+    let res = run_llm(
+        &Vec::new(),
+        &message,
+        on_event,
+        think,
+        model_details,
+        db.inner().clone(),
+        None,
+    )
+    .await?;
+
     let history = vec![
         ChatMessage {
             role: Role::User,
@@ -46,43 +49,33 @@ async fn new_chat(
             content: res.clone(),
         },
     ];
+
     let history_str: String = history
         .iter()
         .map(|e| e.to_string())
         .collect::<Vec<String>>()
         .join("\n");
+
     let summary = set_chat_name(history_str)
         .await
         .map_err(|x| x.to_string())?;
-    let id = create_chat_memory(Conversation {
-        id: None,
-        created: Utc::now(),
-        title: summary,
-        messages: history,
-    })
+
+    let id = create_chat_memory(
+        &db,
+        Conversation {
+            id: None,
+            updated: Utc::now(),
+            title: summary,
+            messages: history,
+        },
+    )
     .await
     .map_err(|x| x.to_string())?;
+
     Ok((id, res))
 }
 
-/// Used when the user want to continue an existing conversation.
-///
-/// Takes in the following params
-///
-/// * `id`: Id of the chat the user wants to continue
-///
-/// * `message`: Message sent by the user to the LLM
-///
-/// * `on_event`: A channel where response can be live streamed as tokens are generated
-///
-/// * `think`: Boolean value to enable/disable reasoning
-///
-/// * `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter (Suspended Temporarily)
-///
-///
-/// Returns the following:
-/// - Success: Return the the response of the Model
-/// - Error: Returns a string with error description
+/// Used when continuing an existing conversation thread.
 #[tauri::command]
 async fn continue_conversation(
     id: String,
@@ -90,10 +83,25 @@ async fn continue_conversation(
     on_event: Channel<String>,
     think: bool,
     model_details: (String, ModelType),
+    db: tauri::State<'_, Surreal<Db>>,
 ) -> Result<String, String> {
-    let history = load_chat_memory(id).await.map_err(|x| x.to_string())?;
+    let history = load_chat_memory(id.clone(), db.clone())
+        .await
+        .map_err(|x| x.to_string())?;
+
     let mut messages = history.messages;
-    let res = run_llm(&messages, &message, on_event, think, model_details).await?;
+
+    let res = run_llm(
+        &messages,
+        &message,
+        on_event,
+        think,
+        model_details,
+        db.inner().clone(),
+        Some(id.clone()),
+    )
+    .await?;
+
     messages.push(ChatMessage {
         role: Role::User,
         content: message,
@@ -102,47 +110,70 @@ async fn continue_conversation(
         role: Role::Assistant,
         content: res.clone(),
     });
-    let _ = update_chat_memory(Conversation {
-        id: history.id,
-        created: history.created,
-        title: history.title,
-        messages,
-    })
+
+    update_chat_memory(
+        &db,
+        Conversation {
+            id: history.id,
+            updated: Utc::now(),
+            title: history.title,
+            messages,
+        },
+    )
     .await
     .map_err(|x| x.to_string())?;
+
     Ok(res)
 }
 
-/// Load a single chat's full data from DB by id
+/// Load a single chat's full history from DB by id.
 #[tauri::command]
-async fn load_chat_memory(id: String) -> Result<Conversation, String> {
-    crate::database::chat_store::load_chat_memory(&id)
+async fn load_chat_memory(
+    id: String,
+    db: tauri::State<'_, Surreal<Db>>,
+) -> Result<Conversation, String> {
+    crate::database::chat_store::load_chat_memory(&db, &id)
         .await
         .map_err(|e| format!("Error loading chat: {e}"))
 }
 
-/// Call the LLM takes in the following params:
-///
-/// `History`: History of the conversation till now
-///
-/// `Message` : The message last sent by the user
-///
-/// `on_event`: A channel where response can be live streamed as tokens are generated
-///
-/// `think`: Boolean value to enable/disable reasoning
-///
-/// `model_details`: A tuple of String that is the model ID and the name of the provider - Ollama/OpenRouter (Suspended Temporarily)
+/// Ingests a local file into vector memory for contextual RAG retrieval.
+#[tauri::command]
+async fn upload_file_memory(
+    file_path: String,
+    conversation_id: Option<String>,
+    db: tauri::State<'_, Surreal<Db>>,
+) -> Result<String, String> {
+    let vector_store =
+        build_vector_store(&db).map_err(|e| format!("Failed to build vector store: {e}"))?;
+
+    upload_text_file_to_memory(&vector_store, &file_path, conversation_id.as_deref())
+        .await
+        .map_err(|e| format!("Error uploading file: {e}"))
+}
+
+/// Internal pipeline dispatcher for LLM generation tasks.
 async fn run_llm(
-    history: &Vec<ChatMessage>,
+    history: &[ChatMessage],
     message: &String,
     on_event: Channel<String>,
     think: bool,
     model_details: (String, ModelType),
+    db: Surreal<Db>,
+    conversation_id: Option<String>,
 ) -> Result<String, String> {
-    // Load history and add it to context using .add_context, pass it as a param to the function
     match model_details.1 {
         ModelType::Ollama => {
-            ollama_prompt_stream(model_details.0, history, message, think, on_event).await
+            ollama_prompt_stream(
+                model_details.0,
+                history,
+                message,
+                think,
+                db,
+                on_event,
+                conversation_id,
+            )
+            .await
         }
         ModelType::OpenRouter => {
             openrouter_prompt_stream(model_details.0, history, think, on_event).await
@@ -150,15 +181,15 @@ async fn run_llm(
     }
 }
 
-/// Returns a list of Summary, which contains the id of the conversation and its title
+/// Returns a list of conversation summaries containing IDs and titles.
 #[tauri::command]
-async fn load_chatlist() -> Result<Vec<Summary>, String> {
-    list_chats()
+async fn load_chatlist(db: tauri::State<'_, Surreal<Db>>) -> Result<Vec<Summary>, String> {
+    list_chats(&db)
         .await
         .map_err(|e| format!("Error loading chats: {e}"))
 }
 
-/// List all the available models, returns the values as a vector of ("ModelName","Ollama"/"OpenRouter")
+/// Lists all available local and remote models.
 #[tauri::command]
 async fn list_models() -> Vec<(String, ModelType)> {
     let ls: Vec<(String, ModelType)> = list_ollama_models()
@@ -166,18 +197,13 @@ async fn list_models() -> Vec<(String, ModelType)> {
         .into_iter()
         .map(|x| (x, ModelType::Ollama))
         .collect();
-    // let _: () = list_openrouter_models()
-    //     .into_iter()
-    //     .map(|x| ls.push((x, ModelType::OpenRouter)))
-    //     .collect();
     ls
 }
 
-/// Stop ollama process before closing the app
+/// Terminate Ollama process before closing application.
 fn stop_ollama() {
     #[cfg(target_os = "windows")]
     {
-        // Windows: Force kill the ollama.exe process
         let _ = Command::new("taskkill")
             .args(["/F", "/IM", "ollama.exe"])
             .output();
@@ -185,15 +211,11 @@ fn stop_ollama() {
 
     #[cfg(target_os = "linux")]
     {
-        // Linux: Attempt to stop the systemd service
-        // let _ = Command::new("systemctl").args(["stop", "ollama"]).output();
-
-        // Linux Fallback: kill the process if it was started manually via terminal
+        let _ = Command::new("systemctl").args(["stop", "ollama"]).output();
         let _ = Command::new("pkill").arg("ollama").output();
     }
 }
 
-// Run function - runs the main tauri app
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
@@ -204,19 +226,39 @@ pub fn run() {
     {
         let _ = Command::new("net").args(["start", "ollama"]).output();
     }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            tauri::async_runtime::block_on(async {
+                let db = Surreal::new::<SurrealKv>("AtlasDB")
+                    .await
+                    .expect("Failed to create DB connection");
+                db.use_ns("Atlas")
+                    .use_db("main")
+                    .await
+                    .expect("Failed to select namespace/db");
+                let _ = db
+                    .query("DEFINE TABLE IF NOT EXISTS documents SCHEMALESS;")
+                    .await;
+                app.manage(db);
+            });
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             new_chat,
             continue_conversation,
             list_models,
             load_chatlist,
-            load_chat_memory
+            load_chat_memory,
+            upload_file_memory,
+            send_audio_chunk,
+            start_stream,
+            stop_stream
         ])
-        .build(tauri::generate_context!()) // Use .build() instead of .run() directly
+        .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|_app_handle, event| {
-            // Listen for the Exit event and stop the Ollama service
             if let tauri::RunEvent::Exit = event {
                 stop_ollama();
             }

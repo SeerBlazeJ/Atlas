@@ -1,4 +1,4 @@
 pub mod chat_store;
-mod context_memory;
+pub mod document_memory;
 mod structures;
 mod users_db;

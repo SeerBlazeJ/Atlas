@@ -7,6 +7,7 @@ edition = "2021"
 
 [lib]
 name = "Atlas"
+path = "src/lib.rs"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -22,9 +23,12 @@ tokio = { version = "1", features = ["full"] }
 futures-util = "0.3"
 tokio-util = { version = "0.7", features = ["io"] }
 futures = "0.3.33"
-rig = "0.41.0"
+rig = "0.42.0"
 dotenvy = "0.15"
 surrealdb = { version = "3.2.4", features = ["kv-surrealkv"] }
 anyhow = "1.0.104"
 chrono = "0.4.45"
-# rig-core = "0.42.0"
+rig-surrealdb = "0.42.0"
+walkdir = "2.5.0"
+rodio = "0.19"
+sherpa-onnx = "1.13.7"

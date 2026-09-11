@@ -1,9 +1,5 @@
 use chrono::{DateTime, Utc};
-use rig::{
-    completion::Message,
-    message::{AssistantContent, UserContent},
-    OneOrMany,
-};
+use rig::completion::Message;
 use serde::{Deserialize, Serialize};
 use surrealdb::types::SurrealValue;
 
@@ -14,7 +10,6 @@ pub enum Role {
     System,
     Assistant,
 }
-
 impl std::fmt::Display for Role {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -34,13 +29,9 @@ pub struct ChatMessage {
 impl ChatMessage {
     pub fn to_rig_message(&self) -> Option<Message> {
         match self.role {
-            Role::User => Some(Message::User {
-                content: OneOrMany::one(UserContent::text(self.content.clone())),
-            }),
-            Role::Assistant => Some(Message::Assistant {
-                content: OneOrMany::one(AssistantContent::text(self.content.clone())),
-                id: None,
-            }),
+            // Use the built-in helpers instead of manually building the struct
+            Role::User => Some(Message::user(self.content.clone())),
+            Role::Assistant => Some(Message::assistant(self.content.clone())),
             Role::System => None, // handled separately via preamble
         }
     }
@@ -55,7 +46,7 @@ pub enum ModelType {
 #[derive(Serialize, Deserialize)]
 pub struct Conversation {
     pub id: Option<String>,
-    pub created: DateTime<Utc>,
+    pub updated: DateTime<Utc>,
     pub title: String,
     pub messages: Vec<ChatMessage>,
 }
